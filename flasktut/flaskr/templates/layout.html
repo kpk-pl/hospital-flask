@@ -1,13 +1,18 @@
 <!doctype html>
-<title>Flaskr</title>
+<title>BITSTORE</title>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 <div class=page>
-  <h1>Flaskr</h1>
+  <h1>BITSTORE</h1>
   <div class=metanav>
   {% if not session.logged_in %}
     <span><a href="{{ url_for('login') }}">log in</a> | <a href="{{ url_for('register') }}">register</a></span>
   {% else %}
-    <span>Logged in as {{ session.username }} | <a href="{{ url_for('my_account') }}">My account</a> | <a href="{{ url_for('logout') }}">log out</a></span>
+    <span>Logged in as {{ session.username }} | 
+    {% if session.rights == 'admin' %}
+        <a href="{{ url_for('control_panel') }}">Control panel</a> |
+    {% endif %}
+    <a href="{{ url_for('my_account') }}">My account</a> | 
+    <a href="{{ url_for('logout') }}">log out</a></span>
   {% endif %}
   </div>
   {% for message in get_flashed_messages() %}

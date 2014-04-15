@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h2>Edit my account</h2>
+  {% if error %}<p class=error><strong>Error:</strong> {{ error }}</p>{% endif %}
+
+  <form action="{{ url_for('edit_my_account') }}" method=post>
+    <dl>
+      <dt>First name:
+      <dd><input type=text name=first_name value={{ info.first_name }}>
+      <dt>Last name:
+      <dd><input type=text name=last_name value={{ info.last_name }}>
+      <dt>E-mail:
+      <dd><input type=email name=email value={{ info.email }}>
+      <dt>Address:
+      <dd><input type=text name=address value={{ info.address }}>
+      <dt>Postal code:
+      <dd><input type=text name=postal value={{ info.postal_code }}>
+      <dt>City:
+      <dd><input type=text name=city value={{ info.city }}>
+      <dt>Phone:
+      <dd><input type=tel name=phone value={{ info.telephone }}>
+      <dd><input type=submit value='Change'>
+    </dl>
+  </form>
+
+{% endblock %}

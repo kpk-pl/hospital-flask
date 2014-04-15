@@ -1,38 +1,88 @@
-drop table if exists entries;
-create table entries (
-  id integer primary key autoincrement,
-  title text not null,
-  text text not null
+drop table if exists patients;
+create table patients (
+    pesel integer primary key,
+    fname text not null,
+    lname text not null,
+    birth date not null
 );
 
-drop table if exists rights;
-create table rights (
-  id integer primary key autoincrement,
-  name text not null
+drop table if exists positions;
+create table positions (
+    id integer primary key autoincrement,
+    name text not null
 );
 
-insert into rights values (0, 'admin');
-insert into rights values (1, 'salesman');
-insert into rights values (2, 'client');
-
-drop table if exists users;
-create table users (
-  id integer primary key autoincrement,
-  rights integer not null,
-  login text not null,
-  password text not null,
-  first_name text not null,
-  last_name text not null,
-  date_registered date not null,
-  address text not null,
-  postal_code text not null,
-  city text not null,
-  telephone text not null,
-  email text not null,
-  
-  foreign key(rights) references rights(id)
+drop table if exists employees;
+create table employees (
+    id integer primary key autoincrement,
+    fname text not null,
+    lname text not null,
+    login text not null,
+    password text not null,
+    position_id integer not null,
+    employment_d date not null,
+    salary integer not null,
+    rights integer not null,
+    
+    foreign key(position_id) references positions(id)
 );
 
-insert into users values (
-  0, 0, 'admin', 'admin', 'Krzysztof', 'Kapusta', 'now', 'Sienna 24', '31-452', 'Kraków', '123456789', 'admin@admin.com'
+drop table if exists files;
+create table files (
+    id integer primary key autoincrement,
+    patient_pesel integer not null,
+    admission_d date not null,
+    discharge_d date,
+    
+    foreign key(patient_pesel) references patients(pesel)
 );
+
+drop table if exists drugs;
+create table drugs (
+    id integer primary key autoincrement,
+    name text not null,
+    quantity integer not null,
+    price integer not null,
+    min_rights integer not null
+);
+
+drop table if exists procedures;
+create table procedures (
+    id integer primary key autoincrement,
+    name text not null,
+    price integer not null,
+    min_rights integer not null
+);
+
+drop table if exists history;
+create table history (
+    id integer primary key autoincrement,
+    fil_id integer not null,
+    entry_d date not null,
+    employee_id integer not null,
+    drug_id integer,
+    procedure_id integer,
+    drug_quantity integer,
+    
+    foreign key(fil_id) references files(id),
+    foreign key(employee_id) references employees(id),
+    foreign key(drug_id) references drugs(id),
+    foreign key(procedure_id) references procedure(id)
+);
+
+drop table if exists assignments;
+create table assignments (
+    procedure_id integer not null,
+    employee_id integer not null,
+    
+    foreign key(procedure_id) references procedures(id),
+    foreign key(employee_id) references employees(id)
+);
+
+insert into positions (id, name) values (0, "Admin");
+insert into positions (id, name) values (1, "Receptionist");
+insert into positions (id, name) values (2, "Head physician");
+
+insert into employees (fname, lname, position_id, employment_d, salary, rights, login, password) values ('Admin', '', 0, date('now'), 10000, 255, 'admin', 'admin');
+insert into employees (fname, lname, position_id, employment_d, salary, rights, login, password) values ('Jane', 'Strongman', 1, date('now'), 4000, 0, 'receptionist', 'receptionist');
+insert into employees (fname, lname, position_id, employment_d, salary, rights, login, password) values ('Steve', 'Balman', 2, date('now'), 9500, 200, 'chief', 'chief');

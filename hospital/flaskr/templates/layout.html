@@ -1,11 +1,11 @@
 <!doctype html>
-<title>Flaskr</title>
+<title>Hospital Management System</title>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 <div class=page>
-  <h1>Flaskr</h1>
+  <h1><a href="{{ url_for('main_screen') }}" class=simplelnk>Hospital Management System</a></h1>
   <div class=metanav>
   {% if not session.logged_in %}
-    <span><a href="{{ url_for('login') }}">log in</a> | <a href="{{ url_for('register') }}">register</a></span>
+    <span><a href="{{ url_for('login') }}">log in</a></span>
   {% else %}
     <span>Logged in as {{ session.username }} | <a href="{{ url_for('my_account') }}">My account</a> | <a href="{{ url_for('logout') }}">log out</a></span>
   {% endif %}

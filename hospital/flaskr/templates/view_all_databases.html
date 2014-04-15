@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h2>View all databases</h2>
+  <br/>
+  <h3>Employees</h3>
+  <table class=dbtable>
+  <tr><td>id<td>fname<td>lname<td>login<td>password<td>position_id<td>employment_d<td>salary<td>rights
+  {% for row in employees %}
+  <tr>
+      {% for d in row %}
+          <td>{{ d }}
+      {% endfor %}
+  </tr>
+  {% endfor %}
+  </table>
+  
+  <br/>
+  <h3>Positions</h3>
+  <table class=dbtable>
+  <tr><td>id<td>name
+  {% for row in positions %}
+  <tr>
+      {% for d in row %}
+          <td>{{ d }}
+      {% endfor %}
+  </tr>
+  {% endfor %}
+  </table>
+  
+  <br/>
+  <h3>Patients</h3>
+  <table class=dbtable>
+  <tr><td>pesel<td>fname<td>lname<td>birth
+  {% for row in patients %}
+  <tr>
+      {% for d in row %}
+          <td>{{ d }}
+      {% endfor %}
+  </tr>
+  {% endfor %}
+  </table>
+  
+  <br/>
+  <h3>Files</h3>
+  <table class=dbtable>
+  <tr><td>id<td>patient_pesel<td>admission_d<td>discharge_d
+  {% for row in files %}
+  <tr>
+      {% for d in row %}
+          <td>{{ d }}
+      {% endfor %}
+  </tr>
+  {% endfor %}
+  </table>
+{% endblock %}

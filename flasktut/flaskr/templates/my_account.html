@@ -2,4 +2,23 @@
 {% block body %}
   <h2>My account</h2>
   {% if error %}<p class=error><strong>Error:</strong> {{ error }}</p>{% endif %}
+  <ul class=account>
+  {% if info %}
+    <li><em>First name:</em> {{ info.first_name }}
+    <li><em>Last name:</em> {{ info.last_name }}
+    <li><em>E-mail:</em> {{ info.email }}
+    <li><em>Address:</em> {{ info.address }}
+    <li><em>Postal code:</em> {{ info.postal_code }}
+    <li><em>City:</em> {{ info.city }}
+    <li><em>Phone:</em> {{ info.telephone }}
+  {% else %}
+    <li><em>Cannot access user data.</em>
+  {% endif %}
+  </ul>
+  
+  <form action="{{ url_for('edit_my_account') }}" method=get>
+    <dl>
+      <dd><input type=submit value='Edit my account'>
+    </dl>
+  </form>
 {% endblock %}

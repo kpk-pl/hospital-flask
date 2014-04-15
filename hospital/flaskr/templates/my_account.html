@@ -1,5 +1,11 @@
 {% extends "layout.html" %}
 {% block body %}
   <h2>My account</h2>
-  {% if error %}<p class=error><strong>Error:</strong> {{ error }}</p>{% endif %}
+  <ul class=entries>
+    <li>Username: {{ data.login }}
+    <li>First name: {{ data.fname }}
+    <li>Last name: {{ data.lname }}
+    <li>Position: {{ data.position }}
+    <li>Salary: {{ data.salary }}
+  </ul>
 {% endblock %}

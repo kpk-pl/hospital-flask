@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block body %}
+  {% if session.logged_in %}
+    <h2>{{ position }} panel
+  {% else %}
+    <h2>Please log in
+  {% endif %}
+  {% block main_screen_body %} {% endblock %}
+{% endblock %}
