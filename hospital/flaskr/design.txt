@@ -1,0 +1,61 @@
+Zarzadzanie szpitalem
+rejestracja klientów - baza danych klientów
+baza lekarzy, przypisanie pacjenta do lekarza prowadzączego
+są lekarze, pielęgniarki, położne, sprzątaczki, każdy się może zalogować, każdy ma pensję.
+lekarze mogą przepsywać lekarstwa i używać wszystkich badań, ale tylko dla swoich pacjentów. Pielęgniarka może przepisywać tylko niektóre lekarstwa wszystkim. Nie może zamawiać badań.
+każdy lek ma stan magazynowy. magazynier może zamawiać dodatkowe. trzymana test tablica zamówień, wraz z cenami. 
+w każdej chwili można sprawdzić ile jest dostępnych lekarstw, ile szpital wydał w każdym okresie na wynagrodzenie, lekarstwa i badania.
+pacjenci mogą mieć przepisywane badania i lekarstwa. lekarstwa się zużywają.
+Każdy pacjent przy rejestracji ma kartotekę w której zapisywane są lekarstwa i badania w każdym pobycie w szpitalu ososbno. 
+lekarz może przepisać pacjenta do innego lekarza w każdym momencie. taki fakt zapisywany jest w kartotece lekarza (każdy lek i procedura jest zapisywana z nazwiskiem lekarza w kartotece + data)
+
+tabela pacjenci:
+    - imię 
+    - nazwisko
+    - pesel - unique key
+    - data urodzenia
+
+tabela pracownicy:
+    - id - unique key
+    - imię
+    - nazwisko
+    - stanowisko - foreign key to stanowiska
+    - data zatrudnienia
+    - pensja
+    - poziom uprawnień
+    
+tabela stanowiska
+    - id - unique key
+    - nazwa stanowiska
+    
+tabela kartoteka (as wizyta pacjenta w szpitalu)
+    - id - unique key
+    - pesel - foreign key to pacjenci
+    - data przyjęcia
+    - data wypisu
+    
+tabela join_lekarz_kartoteka
+    - id kartoteki foreign key to kartoteki
+    - id lekarza foreign key to lekarze
+
+tabela historia
+    - id - unique key
+    - id foreign key to kartoteki konkretnego pacjenta
+    - data wpisu
+    - osoba wpisująca
+    - id lekarstwa foreign key to lekarstwa, may be null
+    - id procedury foreign key to procedury, may be null
+    - ilość przepisanych lekarstw
+    
+tabela lekarstwa
+    - id - unique key
+    - nazwa
+    - ilość w magazynie
+    - wymagany poziom uprawnień
+    - cena
+    
+tabela zabiegi
+    - id - unique key
+    - nazwa
+    - wymagany poziom uprawnień
+    - cena
