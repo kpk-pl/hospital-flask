@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block body %}
+    <h2>Patient details</h2>
+    <br/>
+    <h3>Personal information</h3>
+    <ul class=entries>
+    <li>First name: {{ details.fname }}
+    <li>Last name: {{ details.lname }}
+    <li>PESEL: {{ details.pesel }}
+    <li>Admission date: {{ details.admission_d }}
+    </ul>
+
+{% endblock %}

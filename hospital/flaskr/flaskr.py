@@ -56,6 +56,10 @@ def main_screen():
         return render_template('admin_main.html', position=position)
     elif position == "Receptionist":
         return render_template('receptionist_main.html', position=position)
+    elif position == "Head physician":
+        return render_template('head_physician_main.html', position=position)
+    elif position == "Doctor":
+        return render_template('doctor_main.html', position=position)
         
     return render_template('main_screen.html', position=position)    
     
@@ -182,17 +186,38 @@ def show_patients():
     error = None
     db = get_db()
     position = get_position(db, session['username'])
-    if 'logged_in' not in session or not session['logged_in'] or position not in ['Admin', 'Head physician', 'Doctor']:
+    if 'logged_in' not in session or not session['logged_in'] or position not in ['Admin', 'Head physician', 'Doctor', 'Nurse']:
+        flash('You do not have rights to access this part of website')
+        return redirect(url_for('main_screen'))  
+
+    if position in ['Admin', 'Head physician']:
+        cur = db.execute('select p.fname, p.lname, p.pesel, f.admission_d from files f join patients p on f.patient_pesel = p.pesel where f.discharge_d is null')
+        patients = cur.fetchall()
+    else:    
+        patients = get_patients_allowed(db, session['username'])
+    
+    return render_template('show_patients.html', patients=patients)
+    
+@app.route('/patient_details', methods=['GET', 'POST'])
+def patient_details():
+    error = None
+    db = get_db()
+    position = get_position(db, session['username'])
+    if 'logged_in' not in session or not session['logged_in'] or position not in ['Admin', 'Head physician', 'Doctor', 'Nurse']:
         flash('You do not have rights to access this part of website')
         return redirect(url_for('main_screen'))  
         
+    if 'patient' not in request.args:
+        flash('No patient specified!');
+        return redirect(url_for('main_screen'))  
+    pesel = request.args['patient']
+     
     if position in ['Admin', 'Head physician']:
-        cur = db.execute('select p.fname, p.lname, p.pesel, f.admission_d from files f join patients p on f.patient_pesel = p.pesel where f.discharge_d is null')
+        details = db.execute('select p.fname, p.lname, p.pesel, f.admission_d from files f join patients p on f.patient_pesel = p.pesel where f.discharge_d is null and p.pesel = ?', [pesel]).fetchone()
     else:
-        cur = db.execute('select p.fname, p.lname, p.pesel, f.admission_d from patients p join files f on p.pesel = f.patient_pesel join assignments a on a.fil_id = f.id join employees e on e.login = a.employee_id where e.login = ? and f.discharge_d is null', [session['username']])
-    patients = cur.fetchall()
-    
-    return render_template('show_patients.html', patients=patients)
+        details = get_patient_details_if_allowed(db, session['username'], pesel)
+        
+    return render_template('patient_details.html', details = details)
     
 if __name__ == '__main__':
     app.run()

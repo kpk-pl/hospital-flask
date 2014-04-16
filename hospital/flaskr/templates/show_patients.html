@@ -5,12 +5,13 @@
   <br/>
   <h3>Patient list you are allowed to view</h3>
   <table class=dbtable>
-  <tr><td>First name<td>Last name<td>PESEL<td>Admission date
+  <tr><td>First name<td>Last name<td>PESEL<td>Admission date<td>&nbsp;
   {% for row in patients %}
   <tr>
       {% for d in row %}
           <td>{{ d }}
       {% endfor %}
+      <td><a href="{{ url_for('patient_details', patient=row[2]) }}">Details
   </tr>
   {% endfor %}
   </table>
