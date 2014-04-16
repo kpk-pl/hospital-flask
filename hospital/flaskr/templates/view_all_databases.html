@@ -52,4 +52,17 @@
   </tr>
   {% endfor %}
   </table>
+  
+  <br/>
+  <h3>Assignments</h3>
+  <table class=dbtable>
+  <tr><td>fil_id<td>employee_id
+  {% for row in assignments %}
+  <tr>
+      {% for d in row %}
+          <td>{{ d }}
+      {% endfor %}
+  </tr>
+  {% endfor %}
+  </table>
 {% endblock %}

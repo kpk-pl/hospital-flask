@@ -111,8 +111,27 @@ def view_all_databases():
     pos = db.execute('select * from positions').fetchall()
     pat = db.execute('select * from patients').fetchall()
     fil = db.execute('select * from files').fetchall()
+    assi = db.execute('select * from assignments').fetchall()
       
-    return render_template('view_all_databases.html', employees=emps, positions=pos, patients=pat, files=fil)
+    return render_template('view_all_databases.html', employees=emps, positions=pos, patients=pat, files=fil, assignments=assi)
+    
+@app.route('/do_sql', methods=['GET', 'POST'])
+def do_sql():
+    db = get_db()
+    result = None
+    error = None
+    if 'logged_in' not in session or not session['logged_in'] or get_position(db, session['username']) != 'Admin':
+        flash('You do not have rights to access this part of website')
+        return redirect(url_for('main_screen'))  
+        
+    if request.method == 'POST':
+        try:
+            cur = db.execute(request.form['query'])
+            result = cur.fetchall()
+        except Exception as e:
+            error = str(e)
+            result = None
+    return render_template('do_sql.html', result=result, error = error)
     
 @app.route('/sign_in_new_patient', methods=['GET', 'POST'])
 def sign_in_new_patient():
@@ -157,6 +176,23 @@ def sign_in_new_patient():
                 else:
                     error = "Patient already signed in"
     return render_template('sign_in_new_patient.html', data=form_data, error=error)
+
+@app.route('/show_patients', methods=['GET'])
+def show_patients():
+    error = None
+    db = get_db()
+    position = get_position(db, session['username'])
+    if 'logged_in' not in session or not session['logged_in'] or position not in ['Admin', 'Head physician', 'Doctor']:
+        flash('You do not have rights to access this part of website')
+        return redirect(url_for('main_screen'))  
+        
+    if position in ['Admin', 'Head physician']:
+        cur = db.execute('select p.fname, p.lname, p.pesel, f.admission_d from files f join patients p on f.patient_pesel = p.pesel where f.discharge_d is null')
+    else:
+        cur = db.execute('select p.fname, p.lname, p.pesel, f.admission_d from patients p join files f on p.pesel = f.patient_pesel join assignments a on a.fil_id = f.id join employees e on e.login = a.employee_id where e.login = ? and f.discharge_d is null', [session['username']])
+    patients = cur.fetchall()
+    
+    return render_template('show_patients.html', patients=patients)
     
 if __name__ == '__main__':
     app.run()
