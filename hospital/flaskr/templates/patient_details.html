@@ -1,5 +1,7 @@
 {% extends "layout.html" %}
 {% block body %}
+    {% if error %}<p class=error><strong>Error:</strong> {{ error }}</p>{% endif %}
+
     <h2>Patient details</h2>
     <br/>
     <h3>Personal information</h3>
@@ -10,4 +12,38 @@
     <li>Admission date: {{ details.admission_d }}
     </ul>
 
+    <br/>
+    <h3>Assigned personel</h3>
+    <table class=dbtable>
+    <tr><td>First name<td>Last name<td>Position<td>Rights
+    {% for row in personel %}
+        <tr>
+        {% for d in row %}
+            <td>{{ d }}
+        {% endfor %}
+        </tr>
+    {% endfor %}
+    </table>
+    
+    <br/>
+    
+    <form action="{{ url_for('patient_details', patient=details.pesel) }}" method=post>
+        <label>Assign personel:
+        <select name=new_personel_id>
+        {% for emp in employees %}
+        <option value={{ emp[1] }}>{{ emp[0] }}</option>
+        {% endfor %}
+        </select>
+        <input type=hidden name=ftype value=assign_personel>
+        <input type=submit value=Assign>
+    </form>    
+    
+    {% if deassign %}
+        <br/>
+        <form action="{{ url_for('patient_details', patient=details.pesel) }}" method=post>
+            <label>Deassign yourself:
+            <input type=hidden name=ftype value=deassign_yourself>
+            <input type=submit value=Deassign>
+        </form>         
+    {% endif %}
 {% endblock %}

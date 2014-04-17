@@ -131,6 +131,7 @@ def do_sql():
     if request.method == 'POST':
         try:
             cur = db.execute(request.form['query'])
+            db.commit()
             result = cur.fetchall()
         except Exception as e:
             error = str(e)
@@ -210,14 +211,33 @@ def patient_details():
     if 'patient' not in request.args:
         flash('No patient specified!');
         return redirect(url_for('main_screen'))  
-    pesel = request.args['patient']
+    pesel = request.args['patient']        
+        
+    if request.method == "POST":
+        if request.form['ftype'] == 'assign_personel':
+            add_assignment(db, pesel, request.form['new_personel_id'])
+            flash('Added new assignment')
+        if request.form['ftype'] == 'deassign_yourself':
+            remove_assignment(db, pesel, session['username'])
+            flash('Assignment removed')
+            return redirect(url_for('main_screen')) 
      
     if position in ['Admin', 'Head physician']:
-        details = db.execute('select p.fname, p.lname, p.pesel, f.admission_d from files f join patients p on f.patient_pesel = p.pesel where f.discharge_d is null and p.pesel = ?', [pesel]).fetchone()
+        details = get_patient_details(db, pesel)
     else:
         details = get_patient_details_if_allowed(db, session['username'], pesel)
+        if not details:
+            flash('You cannot view this record')
+            return redirect(url_for('main_screen'))            
         
-    return render_template('patient_details.html', details = details)
+    personel = get_assigned_personel_for_patient(db, pesel)
+    employees = get_all_medical_personel(db)   
+    
+    deassign = None
+    if (is_assigned(db, pesel, session['username'])):
+        deassign = True
+        
+    return render_template('patient_details.html', details=details, personel=personel, employees=employees, error=error, deassign=deassign)
     
 if __name__ == '__main__':
     app.run()

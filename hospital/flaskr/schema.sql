@@ -83,15 +83,21 @@ insert into positions (id, name) values (0, "Admin");
 insert into positions (id, name) values (1, "Receptionist");
 insert into positions (id, name) values (2, "Head physician");
 insert into positions (id, name) values (3, "Doctor");
+insert into positions (id, name) values (4, "Nurse");
 
 insert into employees (id, fname, lname, position_id, employment_d, salary, rights, login, password) values (1, 'Admin', '', 0, date('now'), 10000, 255, 'admin', 'admin');
 insert into employees (id, fname, lname, position_id, employment_d, salary, rights, login, password) values (2, 'Jane', 'Strongman', 1, date('now'), 4000, 0, 'receptionist', 'receptionist');
 insert into employees (id, fname, lname, position_id, employment_d, salary, rights, login, password) values (3, 'Steve', 'Balman', 2, date('now'), 9500, 200, 'chief', 'chief');
 insert into employees (id, fname, lname, position_id, employment_d, salary, rights, login, password) values (4, 'Jane', 'Doe', 3, date('now'), 7000, 10, 'doctor', 'doctor');
+insert into employees (id, fname, lname, position_id, employment_d, salary, rights, login, password) values (5, 'Bill', 'Wicked', 3, date('now'), 5000, 7, 'doctor1', 'doctor1');
+insert into employees (id, fname, lname, position_id, employment_d, salary, rights, login, password) values (6, 'Sarah', 'Nilan', 3, date('now'), 6000, 12, 'doctor2', 'doctor2');
+insert into employees (id, fname, lname, position_id, employment_d, salary, rights, login, password) values (7, 'Stephanie', 'Miller', 4, date('now'), 3500, 2, 'nurse', 'nurse');
 
 insert into patients (fname, lname, pesel, birth) values ('Arnold', 'Bow', 12345678911, date('now'));
+insert into patients (fname, lname, pesel, birth) values ('Jonathan', 'Bowman', 01273504732, date('now'));
 
 insert into files (id, patient_pesel, admission_d) values (1, 12345678911, date('now'));
+insert into files (id, patient_pesel, admission_d) values (2, 01273504732, date('now'));
 
 insert into assignments (fil_id, employee_id) values (1, 4);
 
