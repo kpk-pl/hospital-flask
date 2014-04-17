@@ -33,7 +33,8 @@ def add_assignment(db, pesel, employee_id):
     
 def is_assigned(db, pesel, username):
     cur = db.execute('select count(*) from assignments a join employees e on e.id = a.employee_id join files f on f.id = a.fil_id where f.discharge_d is null and f.patient_pesel = ? and e.login = ?', [pesel, username])
-    return True if cur.fetchone() else False
+    res = cur.fetchone()
+    return True if res[0] > 0 else False
     
 def remove_assignment(db, pesel, username):
     cur = db.execute('delete from assignments where fil_id = (select id from files where discharge_d is null and patient_pesel = ?) and employee_id = (select id from employees where login = ?)', [pesel, username])

@@ -116,8 +116,11 @@ def view_all_databases():
     pat = db.execute('select * from patients').fetchall()
     fil = db.execute('select * from files').fetchall()
     assi = db.execute('select * from assignments').fetchall()
-      
-    return render_template('view_all_databases.html', employees=emps, positions=pos, patients=pat, files=fil, assignments=assi)
+    hist = db.execute('select * from history').fetchall()
+    dr = db.execute('select * from drugs').fetchall()
+    proc = db.execute('select * from procedures').fetchall()
+    
+    return render_template('view_all_databases.html', employees=emps, positions=pos, patients=pat, files=fil, assignments=assi, history=hist, drugs=dr, procedures=proc)
     
 @app.route('/do_sql', methods=['GET', 'POST'])
 def do_sql():

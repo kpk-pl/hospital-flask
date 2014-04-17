@@ -65,4 +65,43 @@
   </tr>
   {% endfor %}
   </table>
+  
+  <br/>
+  <h3>History</h3>
+  <table class=dbtable>
+  <tr><td>id<td>fil_id<td>entry_d<td>employee_id<td>drug_id<td>procedure_id<td>drug_quantity
+  {% for row in history %}
+  <tr>
+      {% for d in row %}
+          <td>{{ d }}
+      {% endfor %}
+  </tr>
+  {% endfor %}
+  </table>
+  
+  <br/>
+  <h3>Drugs</h3>
+  <table class=dbtable>
+  <tr><td>id<td>name<td>quantity<td>price<td>min_rights
+  {% for row in drugs %}
+  <tr>
+      {% for d in row %}
+          <td>{{ d }}
+      {% endfor %}
+  </tr>
+  {% endfor %}
+  </table>
+  
+  <br/>
+  <h3>Procedures</h3>
+  <table class=dbtable>
+  <tr><td>id<td>name<td>price<td>min_rights
+  {% for row in procedures %}
+  <tr>
+      {% for d in row %}
+          <td>{{ d }}
+      {% endfor %}
+  </tr>
+  {% endfor %}
+  </table>
 {% endblock %}
