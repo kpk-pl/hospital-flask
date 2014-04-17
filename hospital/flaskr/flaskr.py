@@ -119,8 +119,9 @@ def view_all_databases():
     hist = db.execute('select * from history').fetchall()
     dr = db.execute('select * from drugs').fetchall()
     proc = db.execute('select * from procedures').fetchall()
+    units = db.execute('select * from units').fetchall()
     
-    return render_template('view_all_databases.html', employees=emps, positions=pos, patients=pat, files=fil, assignments=assi, history=hist, drugs=dr, procedures=proc)
+    return render_template('view_all_databases.html', employees=emps, positions=pos, patients=pat, files=fil, assignments=assi, history=hist, drugs=dr, procedures=proc, units=units)
     
 @app.route('/do_sql', methods=['GET', 'POST'])
 def do_sql():
@@ -151,33 +152,34 @@ def sign_in_new_patient():
 
     form_data = {'fname':'', 'lname':'', 'pesel':'', 'dbirth':''}         
     if request.method == 'POST':
-        if request.form['fname'] == '' and request.form['lname'] == '' and request.form['dbirth'] == '':
-            cur = db.execute('select fname, lname, birth from patients where pesel = ?', [request.form['pesel']])
+        if request.form['fname'] == '' and request.form['lname'] == '':
+            cur = db.execute('select fname, lname from patients where pesel = ?', [request.form['pesel']])
             patient = cur.fetchone()
             if patient:
                 form_data['fname'] = patient[0]
                 form_data['lname'] = patient[1]
                 form_data['pesel'] = request.form['pesel']
-                form_data['dbirth'] = patient[2]
                 flash('Please confirm this data!')
             else:
                 error = 'Patient with this PESEL does not exist'
         else:
-            cur = db.execute('select count(*) from patients where pesel = ?', [request.form['pesel']])
-            if cur.fetchone()[0] == 0:
+            cur = db.execute('select fname, lname from patients where pesel = ?', [request.form['pesel']])
+            record = cur.fetchone()
+            if not record:
                 if request.form['fname'] != '' and request.form['lname'] != '' and len(request.form['pesel']) == 11:
-                    try:
-                        cur = db.execute('insert into patients (fname, lname, pesel, birth) values (?, ?, ?, date(?))', [request.form['fname'],request.form['lname'],request.form['pesel'],request.form['dbirth']])
-                        db.commit()
-                    except:
-                        error = "Incorrect data format"
-                    else:
-                        flash('Patient successfully added')
+                    cur = db.execute('insert into patients (fname, lname, pesel) values (?, ?, ?)', [request.form['fname'],request.form['lname'],request.form['pesel']])
+                    db.commit()
+                    cur = db.execute('select fname, lname from patients where pesel = ?', [request.form['pesel']])
+                    record = cur.fetchone()
+                    flash('Patient successfully added')
                 else:
                     error = "Incorrect data"
             if not error:
-                if not patient_signed_in(db, request.form['pesel']):
-                    db.execute('insert into files (patient_pesel, admission_d) values (?, date(\'now\'))', [request.form['pesel']])
+                if record[0] != request.form['fname'] or record[1] != request.form['lname']:
+                    error = 'Patient with this PESEL exist, but personal information does not match'
+                    form_data['pesel'] = request.form['pesel']
+                elif not patient_signed_in(db, request.form['pesel']):
+                    db.execute('insert into files (patient_pesel, admission_d) values (?, datetime(\'now\'))', [request.form['pesel']])
                     db.commit()
                     flash('Patient signed in')
                     return redirect(url_for('main_screen'))
@@ -218,12 +220,15 @@ def patient_details():
         
     if request.method == "POST":
         if request.form['ftype'] == 'assign_personel':
-            add_assignment(db, pesel, request.form['new_personel_id'])
-            flash('Added new assignment')
+            if add_assignment(db, pesel, request.form['new_personel_id']):
+                flash('Added new assignment')
+            else:
+                flash('Assignment already exist')
         if request.form['ftype'] == 'deassign_yourself':
             remove_assignment(db, pesel, session['username'])
             flash('Assignment removed')
-            return redirect(url_for('main_screen')) 
+            if position not in ['Admin', 'Head physician']:
+                return redirect(url_for('main_screen')) 
      
     if position in ['Admin', 'Head physician']:
         details = get_patient_details(db, pesel)

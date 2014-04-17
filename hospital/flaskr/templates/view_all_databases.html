@@ -15,22 +15,9 @@
   </table>
   
   <br/>
-  <h3>Positions</h3>
-  <table class=dbtable>
-  <tr><td>id<td>name
-  {% for row in positions %}
-  <tr>
-      {% for d in row %}
-          <td>{{ d }}
-      {% endfor %}
-  </tr>
-  {% endfor %}
-  </table>
-  
-  <br/>
   <h3>Patients</h3>
   <table class=dbtable>
-  <tr><td>pesel<td>fname<td>lname<td>birth
+  <tr><td>pesel<td>fname<td>lname
   {% for row in patients %}
   <tr>
       {% for d in row %}
@@ -67,22 +54,9 @@
   </table>
   
   <br/>
-  <h3>History</h3>
-  <table class=dbtable>
-  <tr><td>id<td>fil_id<td>entry_d<td>employee_id<td>drug_id<td>procedure_id<td>drug_quantity
-  {% for row in history %}
-  <tr>
-      {% for d in row %}
-          <td>{{ d }}
-      {% endfor %}
-  </tr>
-  {% endfor %}
-  </table>
-  
-  <br/>
   <h3>Drugs</h3>
   <table class=dbtable>
-  <tr><td>id<td>name<td>quantity<td>price<td>min_rights
+  <tr><td>id<td>name<td>quantity<td>unit_id<td>price<td>min_rights
   {% for row in drugs %}
   <tr>
       {% for d in row %}
@@ -97,6 +71,45 @@
   <table class=dbtable>
   <tr><td>id<td>name<td>price<td>min_rights
   {% for row in procedures %}
+  <tr>
+      {% for d in row %}
+          <td>{{ d }}
+      {% endfor %}
+  </tr>
+  {% endfor %}
+  </table>
+  
+  <br/>
+  <h3>History</h3>
+  <table class=dbtable>
+  <tr><td>id<td>fil_id<td>entry_d<td>employee_id<td>drug_id<td>procedure_id<td>drug_quantity
+  {% for row in history %}
+  <tr>
+      {% for d in row %}
+          <td>{{ d }}
+      {% endfor %}
+  </tr>
+  {% endfor %}
+  </table>  
+  
+  <br/>
+  <h3>Positions</h3>
+  <table class=dbtable>
+  <tr><td>id<td>name
+  {% for row in positions %}
+  <tr>
+      {% for d in row %}
+          <td>{{ d }}
+      {% endfor %}
+  </tr>
+  {% endfor %}
+  </table>
+  
+  <br/>
+  <h3>Units</h3>
+  <table class=dbtable>
+  <tr><td>id<td>name
+  {% for row in units %}
   <tr>
       {% for d in row %}
           <td>{{ d }}
