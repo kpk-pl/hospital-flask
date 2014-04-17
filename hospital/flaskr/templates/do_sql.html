@@ -5,7 +5,7 @@
     <form action="{{ url_for('do_sql') }}" method=post>
     <dl>
         <dt>Query:
-        <dd><textarea name=query rows=3 cols=50></textarea>
+        <dd><textarea name=query rows=10 cols=100>{{ query_value|safe }}</textarea>
         <dd><input type=submit value=Submit>
     </dl>
     </form>

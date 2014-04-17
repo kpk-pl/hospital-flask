@@ -16,7 +16,7 @@ create table employees (
     id integer primary key autoincrement,
     fname text not null,
     lname text not null,
-    login text not null,
+    login text not null unique,
     password text not null,
     position_id integer not null,
     employment_d date not null,
@@ -67,11 +67,11 @@ create table history (
     employee_id integer not null,
     drug_id integer,
     procedure_id integer,
-    drug_quantity integer,
+    drug_quantity float,
     foreign key(fil_id) references files(id),
     foreign key(employee_id) references employees(id),
     foreign key(drug_id) references drugs(id),
-    foreign key(procedure_id) references procedure(id)
+    foreign key(procedure_id) references procedures(id)
 );
 
 drop table if exists assignments;
@@ -88,6 +88,7 @@ insert into positions (id, name) values (2, "Head physician");
 insert into positions (id, name) values (3, "Doctor");
 insert into positions (id, name) values (4, "Nurse");
 insert into positions (id, name) values (5, "Warehouseman");
+insert into positions (id, name) values (6, "Accountant");
 
 insert into employees (id, fname, lname, position_id, employment_d, salary, rights, login, password) values (1, 'Admin', '', 0, date('now'), 10000, 255, 'admin', 'admin');
 insert into employees (id, fname, lname, position_id, employment_d, salary, rights, login, password) values (2, 'Jane', 'Strongman', 1, date('now'), 4000, 0, 'receptionist', 'receptionist');
@@ -97,6 +98,7 @@ insert into employees (id, fname, lname, position_id, employment_d, salary, righ
 insert into employees (id, fname, lname, position_id, employment_d, salary, rights, login, password) values (6, 'Sarah', 'Nilan', 3, date('now'), 6000, 15, 'doctor2', 'doctor2');
 insert into employees (id, fname, lname, position_id, employment_d, salary, rights, login, password) values (7, 'Stephanie', 'Miller', 4, date('now'), 3500, 10, 'nurse', 'nurse');
 insert into employees (id, fname, lname, position_id, employment_d, salary, rights, login, password) values (8, 'Rollo', 'Middleheimer', 5, date('now'), 2000, 0, 'warehouse', 'warehouse');
+insert into employees (id, fname, lname, position_id, employment_d, salary, rights, login, password) values (9, 'Cate', 'Stachorsky', 6, date('now'), 6750, 0, 'accountant', 'accountant');
 
 insert into patients (fname, lname, pesel) values ('Arnold', 'Bow', 12345678911);
 insert into patients (fname, lname, pesel) values ('Jonathan', 'Bowman', 31273504732);
@@ -122,3 +124,4 @@ insert into procedures (id, name, price, min_rights) values (1, 'Brain surgery',
 insert into procedures (id, name, price, min_rights) values (2, 'Flu shot', 25.0, 15);
 
 insert into history (id, fil_id, entry_d, employee_id, drug_id, procedure_id, drug_quantity) values (1, 1, datetime('now'), 6, 1, null, 3);
+insert into history (id, fil_id, entry_d, employee_id, drug_id, procedure_id, drug_quantity) values (2, 1, datetime('now'), 5, null, 2, null);

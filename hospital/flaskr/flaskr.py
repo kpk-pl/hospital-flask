@@ -58,7 +58,7 @@ def main_screen():
         return render_template('receptionist_main.html', position=position)
     elif position == "Head physician":
         return render_template('head_physician_main.html', position=position)
-    elif position == "Doctor":
+    elif position == "Doctor" or position == "Nurse":
         return render_template('doctor_main.html', position=position)
         
     return render_template('main_screen.html', position=position)    
@@ -126,13 +126,15 @@ def view_all_databases():
 @app.route('/do_sql', methods=['GET', 'POST'])
 def do_sql():
     db = get_db()
-    result = None
-    error = None
     if 'logged_in' not in session or not session['logged_in'] or get_position(db, session['username']) != 'Admin':
         flash('You do not have rights to access this part of website')
         return redirect(url_for('main_screen'))  
-        
+    
+    result = None
+    error = None
+    q_v = ""    
     if request.method == 'POST':
+        q_v = request.form['query']
         try:
             cur = db.execute(request.form['query'])
             db.commit()
@@ -140,7 +142,7 @@ def do_sql():
         except Exception as e:
             error = str(e)
             result = None
-    return render_template('do_sql.html', result=result, error = error)
+    return render_template('do_sql.html', result=result, error=error, query_value=q_v)
     
 @app.route('/sign_in_new_patient', methods=['GET', 'POST'])
 def sign_in_new_patient():
@@ -153,8 +155,7 @@ def sign_in_new_patient():
     form_data = {'fname':'', 'lname':'', 'pesel':'', 'dbirth':''}         
     if request.method == 'POST':
         if request.form['fname'] == '' and request.form['lname'] == '':
-            cur = db.execute('select fname, lname from patients where pesel = ?', [request.form['pesel']])
-            patient = cur.fetchone()
+            patient = get_patient_info(db, request.form['pesel'])
             if patient:
                 form_data['fname'] = patient[0]
                 form_data['lname'] = patient[1]
@@ -163,28 +164,25 @@ def sign_in_new_patient():
             else:
                 error = 'Patient with this PESEL does not exist'
         else:
-            cur = db.execute('select fname, lname from patients where pesel = ?', [request.form['pesel']])
-            record = cur.fetchone()
-            if not record:
-                if request.form['fname'] != '' and request.form['lname'] != '' and len(request.form['pesel']) == 11:
-                    cur = db.execute('insert into patients (fname, lname, pesel) values (?, ?, ?)', [request.form['fname'],request.form['lname'],request.form['pesel']])
-                    db.commit()
-                    cur = db.execute('select fname, lname from patients where pesel = ?', [request.form['pesel']])
-                    record = cur.fetchone()
+            res = add_new_patient(db, request.form['fname'], request.form['lname'], request.form['pesel'])
+            if res >= 0:
+                if res > 0:
                     flash('Patient successfully added')
-                else:
-                    error = "Incorrect data"
-            if not error:
-                if record[0] != request.form['fname'] or record[1] != request.form['lname']:
-                    error = 'Patient with this PESEL exist, but personal information does not match'
-                    form_data['pesel'] = request.form['pesel']
-                elif not patient_signed_in(db, request.form['pesel']):
-                    db.execute('insert into files (patient_pesel, admission_d) values (?, datetime(\'now\'))', [request.form['pesel']])
-                    db.commit()
+                # here it is possible that patient was already in database (checked by pesel), so must check first and last name
+                res = register_patient(db, request.form['fname'], request.form['lname'], request.form['pesel'])
+                if res > 0:
                     flash('Patient signed in')
                     return redirect(url_for('main_screen'))
-                else:
+                elif res == -1:
+                    error = 'Patient with this PESEL exist, but personal information does not match'
+                    form_data['pesel'] = request.form['pesel']
+                elif res == -2:
                     error = "Patient already signed in"
+                else:
+                    flash('Error signing in patient')
+            else:
+                error = "Error adding patient"
+                return redirect(url_for('main_screen'))
     return render_template('sign_in_new_patient.html', data=form_data, error=error)
 
 @app.route('/show_patients', methods=['GET'])
@@ -201,8 +199,12 @@ def show_patients():
         patients = cur.fetchall()
     else:    
         patients = get_patients_allowed(db, session['username'])
+        
+    discharge = None
+    if position in ['Admin', 'Head physician', 'Doctor']:
+        discharge = True
     
-    return render_template('show_patients.html', patients=patients)
+    return render_template('show_patients.html', patients=patients, allow_discharge=discharge)
     
 @app.route('/patient_details', methods=['GET', 'POST'])
 def patient_details():
@@ -224,11 +226,31 @@ def patient_details():
                 flash('Added new assignment')
             else:
                 flash('Assignment already exist')
-        if request.form['ftype'] == 'deassign_yourself':
+        elif request.form['ftype'] == 'deassign_yourself':
             remove_assignment(db, pesel, session['username'])
             flash('Assignment removed')
             if position not in ['Admin', 'Head physician']:
-                return redirect(url_for('main_screen')) 
+                return redirect(url_for('main_screen'))
+        elif request.form['ftype'] == 'presc_drug':
+            quantity = float(request.form['quantity'])
+            if quantity <= 0:
+                error = 'Cannot prescribe this quantity'
+            else:
+                num = prescribe_drug(db, session['username'], pesel, request.form['presc_drug'], quantity)
+                if num < 0:
+                    flash('Error in prescribing drug (%d)' % (num))
+                    return redirect(url_for('main_screen'))  
+                if num != quantity:
+                    error = 'Not enough drug in storage. Canceling. Contact your supervisor.'
+                else:
+                    flash('Drug prescribed')
+        elif request.form['ftype'] == 'order_proc':
+            num = order_procedure(db, session['username'], pesel, request.form['ordered_proc'])
+            if num < 0:
+                flash('Error in prescribing drug (%d)' % (num))
+                return redirect(url_for('main_screen'))
+            else:
+                flash('Procedure ordered')
      
     if position in ['Admin', 'Head physician']:
         details = get_patient_details(db, pesel)
@@ -245,7 +267,45 @@ def patient_details():
     if (is_assigned(db, pesel, session['username'])):
         deassign = True
         
-    return render_template('patient_details.html', details=details, personel=personel, employees=employees, error=error, deassign=deassign)
+    discharge = None
+    if position in ['Admin', 'Head physician', 'Doctor']:
+        discharge = True
+        
+    curr_history = get_current_history(db, pesel)
+    avail_drugs = get_all_allowed_drugs(db, session['username'])   
+    avail_procedures = get_all_allowed_procedures(db, session['username'])   
+        
+    return render_template('patient_details.html', details=details, personel=personel, employees=employees, error=error, deassign=deassign, allowed_discharge=discharge, curr_history=curr_history, avail_drugs=avail_drugs, avail_procedures=avail_procedures)
+
+@app.route('/discharge', methods=['GET', 'POST'])
+def discharge():
+    db = get_db()
+    position = get_position(db, session['username'])
+    if 'logged_in' not in session or not session['logged_in'] or position not in ['Head physician', 'Doctor', 'Admin']:
+        flash('You do not have rights to access this part of website')
+        return redirect(url_for('main_screen')) 
+        
+    if 'patient' not in request.args:
+        flash('No patient specified!');
+        return redirect(url_for('main_screen'))  
+    pesel = request.args['patient']       
+        
+    if position in ['Admin', 'Head physician']:
+        details = get_patient_details(db, pesel)
+    else:
+        details = get_patient_details_if_allowed(db, session['username'], pesel)
+        if not details:
+            flash('You cannot view this record')
+            return redirect(url_for('main_screen')) 
+            
+    if request.method == 'POST':
+        if request.form['confirmation'] == 'yes' and discharge_patient(db, pesel):
+            flash('Patient discharged')
+        else:
+            flash('Error while discharging. Contact system administrator.')
+        return redirect(url_for('show_patients'))
+        
+    return render_template('discharge.html', details=details)
     
 if __name__ == '__main__':
     app.run()

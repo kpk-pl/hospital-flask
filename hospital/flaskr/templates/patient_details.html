@@ -12,6 +12,12 @@
     <li>Admission date: {{ details.admission_d }}
     </ul>
 
+    {% if allowed_discharge %}
+    <form action="{{ url_for('discharge', patient=details.pesel) }}" method=post>
+        <input type=submit value=Discharge>
+    </form> 
+    {% endif %}
+    
     <br/>
     <h3>Assigned personel</h3>
     <table class=dbtable>
@@ -26,7 +32,6 @@
     </table>
     
     <br/>
-    
     <form action="{{ url_for('patient_details', patient=details.pesel) }}" method=post>
         <label>Assign personel:
         <select name=new_personel_id>
@@ -46,4 +51,40 @@
             <input type=submit value=Deassign>
         </form>         
     {% endif %}
+    
+    <br/><br/>
+    <h3>Current history</h3>
+    <table class=dbtable>
+    <tr><td>Date<td>Drug<td>Quantity<td>Procedure<td>Employee
+    {% for row in curr_history %}
+        <tr>
+        {% for d in row %}
+            <td>{% if d %}{{ d }}{% endif %}
+        {% endfor %}
+        </tr>
+    {% endfor %}
+    </table>
+    
+    <br/>
+    <form action="{{ url_for('patient_details', patient=details.pesel) }}" method=post>
+        <label>Prescribe drug:
+        <select name=presc_drug>
+        {% for dr in avail_drugs %}
+        <option value={{ dr[0] }}>{{ dr[1] }}</option>
+        {% endfor %}
+        </select>
+        <input type=number step=0.001 name=quantity value=0>
+        <input type=hidden name=ftype value=presc_drug>
+        <input type=submit value=Prescribe>
+    </form>  
+    <form action="{{ url_for('patient_details', patient=details.pesel) }}" method=post>
+        <label>Order procedure:
+        <select name=ordered_proc>
+        {% for pr in avail_procedures %}
+        <option value={{ pr[0] }}>{{ pr[1] }}</option>
+        {% endfor %}
+        </select>
+        <input type=hidden name=ftype value=order_proc>
+        <input type=submit value=Order>
+    </form> 
 {% endblock %}
