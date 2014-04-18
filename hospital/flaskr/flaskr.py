@@ -317,7 +317,7 @@ def view_supplies():
         flash('You do not have rights to access this part of website')
         return redirect(url_for('main_screen'))    
         
-    supplies = get_all_drugs(db)
+    supplies = get_all_active_drugs(db)
     return render_template('view_supplies.html', supplies=supplies)
     
 @app.route('/drug_details', methods=['GET', 'POST'])   
@@ -336,6 +336,7 @@ def drug_details():
         
     allow_orders = (position in ['Admin', 'Warehouseman'])
     allow_change_price = (position in ['Admin', 'Head physician'])
+    allow_delete = allow_change_price
         
     if request.method == 'POST':
         if request.form['ftype'] == 'order_more':
@@ -357,13 +358,23 @@ def drug_details():
                 else:
                     change_drug_price(db, id, price)
                     flash('Price changed')
+        elif request.form['ftype'] == 'delete_drug':
+            if not allow_delete:
+                error = 'You are not allowed to delete the drug'
+            else:
+                inactivate_drug(db, id)
+                flash('Drug deleted')
+                return redirect(url_for('view_supplies'))
         else:
             flash('Not supported')
             return redirect(url_for('main_screen'))  
         
-    details = get_drug_details(db, id)
+    details = get_active_drug_details(db, id)
+    if not details:
+        flash('Inactive drug')
+        return redirect(url_for('main_screen')) 
     orders = get_drug_orders(db, id, 10)
-    return render_template('drug_details.html', details=details, error=error, orders=orders, allow_orders=allow_orders, allow_change_price=allow_change_price)
+    return render_template('drug_details.html', details=details, error=error, orders=orders, allow_orders=allow_orders, allow_change_price=allow_change_price, allow_delete=allow_delete)
     
 if __name__ == '__main__':
     app.run()

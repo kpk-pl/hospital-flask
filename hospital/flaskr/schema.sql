@@ -48,6 +48,7 @@ create table drugs (
     unit_id integer not null,
     price float not null,
     min_rights integer not null,
+    active integer not null,
     foreign key(unit_id) references units(id)
 );
 
@@ -56,7 +57,8 @@ create table procedures (
     id integer primary key autoincrement,
     name text not null,
     price float not null,
-    min_rights integer not null
+    min_rights integer not null,
+    active integer not null
 );
 
 drop table if exists history;
@@ -128,12 +130,12 @@ insert into units (id, name) values (2, 'g');
 insert into units (id, name) values (3, 'ml');
 insert into units (id, name) values (4, 'min');
 
-insert into drugs (id, name, quantity, unit_id, price, min_rights) values (1, "Aspirin", 100, 1, 0.02, 2);
-insert into drugs (id, name, quantity, unit_id, price, min_rights) values (2, "Ketonal", 10, 3, 2.0, 20);
-insert into drugs (id, name, quantity, unit_id, price, min_rights) values (3, "Astmodil", 16, 2, 54.0, 30);
+insert into drugs (id, name, quantity, unit_id, price, min_rights, active) values (1, "Aspirin", 100, 1, 0.02, 2, 1);
+insert into drugs (id, name, quantity, unit_id, price, min_rights, active) values (2, "Ketonal", 10, 3, 2.0, 20, 1);
+insert into drugs (id, name, quantity, unit_id, price, min_rights, active) values (3, "Astmodil", 16, 2, 54.0, 30, 1);
     
-insert into procedures (id, name, price, min_rights) values (1, 'Brain surgery', 5000.0, 70);
-insert into procedures (id, name, price, min_rights) values (2, 'Flu shot', 25.0, 15);
+insert into procedures (id, name, price, min_rights, active) values (1, 'Brain surgery', 5000.0, 70, 1);
+insert into procedures (id, name, price, min_rights, active) values (2, 'Flu shot', 25.0, 15, 1);
 
 insert into history (id, fil_id, entry_d, employee_id, drug_id, procedure_id, drug_quantity) values (1, 1, datetime('now'), 6, 1, null, 3);
 insert into history (id, fil_id, entry_d, employee_id, drug_id, procedure_id, drug_quantity) values (2, 1, datetime('now'), 5, null, 2, null);

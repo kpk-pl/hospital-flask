@@ -117,10 +117,10 @@ def get_current_history(db, pesel):
     return cur.fetchall()
     
 def get_all_allowed_drugs(db, username):
-    return db.execute("select d.id, d.name || ' [' || d.price || '$/' || u.name || ']' from drugs d join units u on d.unit_id = u.id where d.min_rights <= (select rights from employees where login = ?) order by d.name", [username]).fetchall()
+    return db.execute("select d.id, d.name || ' [' || d.price || '$/' || u.name || ']' from drugs d join units u on d.unit_id = u.id where d.min_rights <= (select rights from employees where login = ?) and d.active = 1 order by d.name", [username]).fetchall()
     
 def get_all_allowed_procedures(db, username):
-    return db.execute("select p.id, p.name || ' [' || p.price || '$]' from procedures p where p.min_rights <= (select rights from employees where login = ?) order by p.name", [username]).fetchall()    
+    return db.execute("select p.id, p.name || ' [' || p.price || '$]' from procedures p where p.min_rights <= (select rights from employees where login = ?) and p.active = 1 order by p.name", [username]).fetchall()    
     
 def prescribe_drug(db, username, pesel, drug_id, quantity):
     """
@@ -145,7 +145,7 @@ def prescribe_drug(db, username, pesel, drug_id, quantity):
             # verify that employee is assigned to pesel
             if db.execute('select count(*) from assignments where fil_id = ? and employee_id = ?', [file_id, employee_id]).fetchone()[0] > 0:
                 #check if drug exists
-                if db.execute('select count(*) from drugs where id = ?', [drug_id]).fetchone()[0] == 1:
+                if db.execute('select count(*) from drugs where id = ? and active = 1', [drug_id]).fetchone()[0] == 1:
                     #check that employee is allowed to prescribe the drug
                     drug_q = db.execute('select quantity from drugs where id = ? and min_rights <= (select rights from employees where id = ?)', [drug_id, employee_id]).fetchone()
                     if drug_q:
@@ -193,7 +193,7 @@ def order_procedure(db, username, pesel, proc_id):
             # verify that employee is assigned to pesel
             if db.execute('select count(*) from assignments where fil_id = ? and employee_id = ?', [file_id, employee_id]).fetchone()[0] > 0:
                 #check if procedure exists
-                if db.execute('select count(*) from procedures where id = ?', [proc_id]).fetchone()[0] == 1:
+                if db.execute('select count(*) from procedures where id = ? and active = 1', [proc_id]).fetchone()[0] == 1:
                     #check that employee is allowed to order the procedure
                     if db.execute('select count(*) from procedures where id = ? and min_rights <= (select rights from employees where id = ?)', [proc_id, employee_id]).fetchone()[0] == 1:
                         db.execute('insert into history (fil_id, entry_d, employee_id, procedure_id) values (?, datetime(\'now\'), ?, ?)', [file_id, employee_id, proc_id])
@@ -224,15 +224,15 @@ def discharge_patient(db, pesel):
     db.rollback()
     return False
     
-def get_all_drugs(db):
-    return db.execute('select d.name, d.quantity||\' \'||u.name, d.price||\'$ / \'||u.name, d.id from drugs d join units u on d.unit_id = u.id order by d.name').fetchall()
+def get_all_active_drugs(db):
+    return db.execute('select d.name, d.quantity||\' \'||u.name, d.price||\'$ / \'||u.name, d.id from drugs d join units u on d.unit_id = u.id where d.active = 1 order by d.name').fetchall()
         
-def get_drug_details(db, id):
-    return db.execute('select d.name, d.quantity||\' \'||u.name, d.price||\'$ / \'||u.name, d.id from drugs d join units u on d.unit_id = u.id where d.id = ? order by d.name', [id]).fetchone()
+def get_active_drug_details(db, id):
+    return db.execute('select d.name, d.quantity||\' \'||u.name, d.price||\'$ / \'||u.name, d.id from drugs d join units u on d.unit_id = u.id where d.id = ? and active = 1 order by d.name', [id]).fetchone()
    
 def order_drug(db, id, quantity, username):
     db.execute('begin transaction')
-    count = db.execute('select count(*) from drugs where id = ?', [id]).fetchone()[0]
+    count = db.execute('select count(*) from drugs where id = ? and active = 1', [id]).fetchone()[0]
     if count != 1:
         return False
     try:
@@ -250,3 +250,7 @@ def get_drug_orders(db, id, num):
     
 def change_drug_price(db, id, price):
     db.execute('update drugs set price = ? where id = ?', [price, id])
+    
+def inactivate_drug(db, id):
+    db.execute('update drugs set active = 0 where id = ?', [id])
+    db.commit()

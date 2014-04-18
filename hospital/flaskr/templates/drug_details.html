@@ -30,6 +30,15 @@
     <br/>
     {% endif %}
     
+    {% if allow_delete %}
+    <h3>Delete drug from system</h3>
+    <form action="{{ url_for('drug_details', drug=details[3]) }}" method=post>
+        <input type=hidden name=ftype value=delete_drug>
+        <input type=submit value='Delete'>
+    </form>
+    <br/>    
+    {% endif %}
+    
     <h3>Recent orders</h3>
     <table class=dbtable>
     <tr><td>Order date<td>Quantity<td>Unit price
