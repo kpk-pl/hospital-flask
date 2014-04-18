@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h2>Warehouse supplies</h2>
+  <br/>
+  <table class=dbtable>
+  <tr><td>Name<td>In stock<td>Price<td>Details
+  {% for row in supplies %}
+  <tr>
+      <td>{{ row[0] }}<td>{{ row[1] }}<td>{{ row[2] }}
+      <td><a href="{{ url_for('drug_details', drug=row[3]) }}">Details
+  </tr>
+  {% endfor %}
+  </table>
+{% endblock %}

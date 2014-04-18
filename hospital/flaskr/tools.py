@@ -152,7 +152,7 @@ def prescribe_drug(db, username, pesel, drug_id, quantity):
                         drug_q = drug_q[0]
                         #check if there is enough to prescribe
                         if drug_q >= quantity:
-                            db.execute('update drugs set quantity = ? where id = ?', [drug_q - quantity, drug_id])
+                            db.execute('update drugs set quantity = quantity-? where id = ?', [quantity, drug_id])
                             db.execute('insert into history (fil_id, entry_d, employee_id, drug_id, drug_quantity) values (?, datetime(\'now\'), ?, ?, ?)', [file_id, employee_id, drug_id, quantity])
                             db.commit()
                             return quantity
@@ -223,3 +223,30 @@ def discharge_patient(db, pesel):
         return True
     db.rollback()
     return False
+    
+def get_all_drugs(db):
+    return db.execute('select d.name, d.quantity||\' \'||u.name, d.price||\'$ / \'||u.name, d.id from drugs d join units u on d.unit_id = u.id order by d.name').fetchall()
+        
+def get_drug_details(db, id):
+    return db.execute('select d.name, d.quantity||\' \'||u.name, d.price||\'$ / \'||u.name, d.id from drugs d join units u on d.unit_id = u.id where d.id = ? order by d.name', [id]).fetchone()
+   
+def order_drug(db, id, quantity, username):
+    db.execute('begin transaction')
+    count = db.execute('select count(*) from drugs where id = ?', [id]).fetchone()[0]
+    if count != 1:
+        return False
+    try:
+        db.execute('update drugs set quantity = quantity+? where id = ?', [quantity, id])
+        db.execute('insert into orders (drug_id, quantity, unit_price, order_d, employee_id) values (?, ?, (select price from drugs where id = ?), datetime("now"), (select id from employees where login = ?))',[id, quantity, id, username])
+    except:
+        db.rollback()
+        return False
+    else:
+        db.commit()
+        return True
+        
+def get_drug_orders(db, id, num):
+    return db.execute('select o.order_d, o.quantity||" "||u.name, o.unit_price||"$ / "||u.name from orders o join drugs d on o.drug_id = d.id join units u on d.unit_id = u.id where d.id = ? order by o.order_d desc limit 0, ?', [id, num]).fetchall()
+    
+def change_drug_price(db, id, price):
+    db.execute('update drugs set price = ? where id = ?', [price, id])

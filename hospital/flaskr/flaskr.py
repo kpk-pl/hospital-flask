@@ -60,6 +60,8 @@ def main_screen():
         return render_template('head_physician_main.html', position=position)
     elif position == "Doctor" or position == "Nurse":
         return render_template('doctor_main.html', position=position)
+    elif position == "Warehouseman":
+        return render_template('warehouseman_main.html', position=position)
         
     return render_template('main_screen.html', position=position)    
     
@@ -72,9 +74,8 @@ def login():
         
     if request.method == 'POST':
         db = get_db()
-        cur = db.execute('select count(*) from employees where login = ? and password = ?', [request.form['login'], request.form['password']])
-        res = cur.fetchone()
-        if res:
+        ok = db.execute('select count(*) from employees where login = ? and password = ?', [request.form['login'], request.form['password']]).fetchone()[0]
+        if ok:
             session['logged_in'] = True
             session['username'] = request.form['login']
             flash('Hello ' + request.form['login'])
@@ -120,8 +121,9 @@ def view_all_databases():
     dr = db.execute('select * from drugs').fetchall()
     proc = db.execute('select * from procedures').fetchall()
     units = db.execute('select * from units').fetchall()
+    ord = db.execute('select * from orders').fetchall()
     
-    return render_template('view_all_databases.html', employees=emps, positions=pos, patients=pat, files=fil, assignments=assi, history=hist, drugs=dr, procedures=proc, units=units)
+    return render_template('view_all_databases.html', employees=emps, positions=pos, patients=pat, files=fil, assignments=assi, history=hist, drugs=dr, procedures=proc, units=units, orders=ord)
     
 @app.route('/do_sql', methods=['GET', 'POST'])
 def do_sql():
@@ -306,6 +308,62 @@ def discharge():
         return redirect(url_for('show_patients'))
         
     return render_template('discharge.html', details=details)
+
+@app.route('/view_supplies', methods=['GET'])
+def view_supplies():
+    db = get_db()
+    position = get_position(db, session['username'])
+    if 'logged_in' not in session or not session['logged_in'] or position not in ['Admin', 'Warehouseman', 'Head physician']:
+        flash('You do not have rights to access this part of website')
+        return redirect(url_for('main_screen'))    
+        
+    supplies = get_all_drugs(db)
+    return render_template('view_supplies.html', supplies=supplies)
+    
+@app.route('/drug_details', methods=['GET', 'POST'])   
+def drug_details():
+    db = get_db()
+    error = None
+    position = get_position(db, session['username'])
+    if 'logged_in' not in session or not session['logged_in'] or position not in ['Admin', 'Warehouseman', 'Head physician']:
+        flash('You do not have rights to access this part of website')
+        return redirect(url_for('main_screen')) 
+        
+    if 'drug' not in request.args:
+        flash('No drug specified!');
+        return redirect(url_for('main_screen'))  
+    id = int(request.args['drug'])      
+        
+    allow_orders = (position in ['Admin', 'Warehouseman'])
+    allow_change_price = (position in ['Admin', 'Head physician'])
+        
+    if request.method == 'POST':
+        if request.form['ftype'] == 'order_more':
+            if not allow_orders:
+                error = 'You are not allowed to place orders'
+            else:
+                quantity = float(request.form['quantity'])
+                if not order_drug(db, id, quantity, session['username']):
+                    error = "Cannot proceed with order"
+                else:
+                    flash("Order requested")
+        elif request.form['ftype'] == 'change_price':
+            if not allow_change_price:
+                error = 'You are not allowed to change price'
+            else:
+                price = float(request.form['price'])
+                if price < 0:
+                    error = "Price cannot be less than zero"
+                else:
+                    change_drug_price(db, id, price)
+                    flash('Price changed')
+        else:
+            flash('Not supported')
+            return redirect(url_for('main_screen'))  
+        
+    details = get_drug_details(db, id)
+    orders = get_drug_orders(db, id, 10)
+    return render_template('drug_details.html', details=details, error=error, orders=orders, allow_orders=allow_orders, allow_change_price=allow_change_price)
     
 if __name__ == '__main__':
     app.run()

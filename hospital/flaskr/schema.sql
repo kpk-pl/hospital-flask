@@ -82,6 +82,18 @@ create table assignments (
     foreign key(employee_id) references employees(id)
 );
 
+drop table if exists orders;
+create table orders (
+    id integer primary key autoincrement,
+    drug_id integer not null,
+    quantity float not null,
+    unit_price float not null,
+    order_d datetime not null,
+    employee_id integer not null,
+    foreign key(employee_id) references employee(id),
+    foreign key(drug_id) references drugs(id)
+);
+
 insert into positions (id, name) values (0, "Admin");
 insert into positions (id, name) values (1, "Receptionist");
 insert into positions (id, name) values (2, "Head physician");

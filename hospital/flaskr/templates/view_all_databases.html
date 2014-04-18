@@ -93,6 +93,19 @@
   </table>  
   
   <br/>
+  <h3>Orders</h3>
+  <table class=dbtable>
+  <tr><td>id<td>drug_id<td>quantity<td>unit_price<td>order_d<td>employee_id
+  {% for row in orders %}
+  <tr>
+      {% for d in row %}
+          <td>{{ d }}
+      {% endfor %}
+  </tr>
+  {% endfor %}
+  </table>  
+  
+  <br/>
   <h3>Positions</h3>
   <table class=dbtable>
   <tr><td>id<td>name

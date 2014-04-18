@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{% block body %}
+    {% if error %}<p class=error><strong>Error:</strong> {{ error }}</p>{% endif %}
+
+    <h2>Drug details</h2>
+    <br/>
+    <ul class=entries>
+    <li>Name: {{ details[0] }}
+    <li>In stock: {{ details[1] }}
+    <li>Price: {{ details[2] }}
+    </ul>
+    
+    {% if allow_orders %}
+    <h3>Order delivery</h3>
+    <form action="{{ url_for('drug_details', drug=details[3]) }}" method=post>
+        <input type=number step=0.001 name=quantity value=0>
+        <input type=hidden name=ftype value=order_more>
+        <input type=submit value='Order now'>
+    </form>
+    <br/>
+    {% endif %}
+    
+    {% if allow_change_price %}
+    <h3>Change price</h3>
+    <form action="{{ url_for('drug_details', drug=details[3]) }}" method=post>
+        <input type=number step=0.01 name=price value=0>
+        <input type=hidden name=ftype value=change_price>
+        <input type=submit value='Change price'>
+    </form>
+    <br/>
+    {% endif %}
+    
+    <h3>Recent orders</h3>
+    <table class=dbtable>
+    <tr><td>Order date<td>Quantity<td>Unit price
+    {% for row in orders %}
+    <tr>
+        {% for d in row %}
+        <td>{{ d }}
+        {% endfor %}
+    </tr>
+    {% endfor %}
+{% endblock %}
