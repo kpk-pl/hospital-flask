@@ -275,10 +275,12 @@ def get_cost_report_query(d_from, d_to, categories):
         if query != '':
             query += ' UNION ALL '
         query += 'select datetime("now", "start of month") as Date, " Salary" as Name, " Salary" as Category, e.lname||" "||e.fname as Employee, round(e.salary*( \
-                  strftime("%Y.%m", date(min(date("now"), ?), "start of month")) - \
-                  strftime("%Y.%m", date(max(e.employment_d, ?), "start of month")) \
-                  )*100,2) as Cost from employees e where Cost <> 0'
+                  12*strftime("%Y", date(min(date("now"), ?), "start of month")) + strftime("%m", date(min(date("now"), ?), "start of month")) - \
+                  12*strftime("%Y", date(max(e.employment_d, ?), "start of month")) - strftime("%m", date(max(e.employment_d, ?), "start of month")) \
+                  ),2) as Cost from employees e where Cost > 0'
         params.append(d_to)
+        params.append(d_to)
+        params.append(d_from)
         params.append(d_from)
     return query, params
   
