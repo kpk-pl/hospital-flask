@@ -254,3 +254,6 @@ def change_drug_price(db, id, price):
 def inactivate_drug(db, id):
     db.execute('update drugs set active = 0 where id = ?', [id])
     db.commit()
+    
+def get_all_medical_records(db, pesel):
+    return db.execute("select f.id, h.entry_d, d.name, h.drug_quantity || u.name, pr.name, e.fname || ' ' || e.lname || ' (' || p.name || ')' from history h join files f on f.id = h.fil_id join employees e on e.id = h.employee_id join positions p on p.id = e.position_id left join drugs d on d.id = h.drug_id left join units u on d.unit_id = u.id left join procedures pr on pr.id = h.procedure_id where f.patient_pesel = ? order by h.entry_d desc", [pesel]).fetchall()

@@ -33,7 +33,7 @@
     
     <br/>
     <form action="{{ url_for('patient_details', patient=details.pesel) }}" method=post>
-        <label>Assign personel:
+        <label>Assign personel:</label>
         <select name=new_personel_id>
         {% for emp in employees %}
         <option value={{ emp[1] }}>{{ emp[0] }}</option>
@@ -46,13 +46,13 @@
     {% if deassign %}
         <br/>
         <form action="{{ url_for('patient_details', patient=details.pesel) }}" method=post>
-            <label>Deassign yourself:
+            <label>Deassign yourself:</label>
             <input type=hidden name=ftype value=deassign_yourself>
             <input type=submit value=Deassign>
         </form>         
     {% endif %}
     
-    <br/><br/>
+    <br/>
     <h3>Current history</h3>
     <table class=dbtable>
     <tr><td>Date<td>Drug<td>Quantity<td>Procedure<td>Employee
@@ -67,7 +67,7 @@
     
     <br/>
     <form action="{{ url_for('patient_details', patient=details.pesel) }}" method=post>
-        <label>Prescribe drug:
+        <label>Prescribe drug:</label>
         <select name=presc_drug>
         {% for dr in avail_drugs %}
         <option value={{ dr[0] }}>{{ dr[1] }}</option>
@@ -78,7 +78,7 @@
         <input type=submit value=Prescribe>
     </form>  
     <form action="{{ url_for('patient_details', patient=details.pesel) }}" method=post>
-        <label>Order procedure:
+        <label>Order procedure:</label>
         <select name=ordered_proc>
         {% for pr in avail_procedures %}
         <option value={{ pr[0] }}>{{ pr[1] }}</option>
@@ -87,4 +87,26 @@
         <input type=hidden name=ftype value=order_proc>
         <input type=submit value=Order>
     </form> 
+    
+    <br/>
+    <form action="{{ url_for('patient_details', patient=details.pesel) }}" method=post>
+        <label>View all medical records:</label>
+        <input type=hidden name=ftype value=view_history>
+        <input type=submit value=View>
+    </form> 
+    
+    {% if medical_records %}
+        <br/>
+        <h3>Medical records</h3>
+        <table class=dbtable>
+        <tr><td>File<td>Date<td>Drug<td>Quantity<td>Procedure<td>Employee
+        {% for row in medical_records %}
+            <tr>
+            {% for d in row %}
+                <td>{% if d %}{{ d }}{% endif %}
+            {% endfor %}
+            </tr>
+        {% endfor %}
+        </table>
+    {% endif %}
 {% endblock %}

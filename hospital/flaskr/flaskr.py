@@ -222,6 +222,8 @@ def patient_details():
         return redirect(url_for('main_screen'))  
     pesel = request.args['patient']        
         
+    medical_records = None    
+        
     if request.method == "POST":
         if request.form['ftype'] == 'assign_personel':
             if add_assignment(db, pesel, request.form['new_personel_id']):
@@ -253,6 +255,8 @@ def patient_details():
                 return redirect(url_for('main_screen'))
             else:
                 flash('Procedure ordered')
+        elif request.form['ftype'] == 'view_history':
+            medical_records = get_all_medical_records(db, pesel)
      
     if position in ['Admin', 'Head physician']:
         details = get_patient_details(db, pesel)
@@ -272,12 +276,12 @@ def patient_details():
     discharge = None
     if position in ['Admin', 'Head physician', 'Doctor']:
         discharge = True
-        
+    
     curr_history = get_current_history(db, pesel)
     avail_drugs = get_all_allowed_drugs(db, session['username'])   
     avail_procedures = get_all_allowed_procedures(db, session['username'])   
         
-    return render_template('patient_details.html', details=details, personel=personel, employees=employees, error=error, deassign=deassign, allowed_discharge=discharge, curr_history=curr_history, avail_drugs=avail_drugs, avail_procedures=avail_procedures)
+    return render_template('patient_details.html', details=details, personel=personel, employees=employees, error=error, deassign=deassign, allowed_discharge=discharge, curr_history=curr_history, avail_drugs=avail_drugs, avail_procedures=avail_procedures, medical_records=medical_records)
 
 @app.route('/discharge', methods=['GET', 'POST'])
 def discharge():
