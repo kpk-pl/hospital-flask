@@ -257,3 +257,59 @@ def inactivate_drug(db, id):
     
 def get_all_medical_records(db, pesel):
     return db.execute("select f.id, h.entry_d, d.name, h.drug_quantity || u.name, pr.name, e.fname || ' ' || e.lname || ' (' || p.name || ')' from history h join files f on f.id = h.fil_id join employees e on e.id = h.employee_id join positions p on p.id = e.position_id left join drugs d on d.id = h.drug_id left join units u on d.unit_id = u.id left join procedures pr on pr.id = h.procedure_id where f.patient_pesel = ? order by h.entry_d desc", [pesel]).fetchall()
+ 
+def get_cost_report_query(d_from, d_to, categories):
+    query = ''
+    params = []
+    if 'drugs' in categories:
+        query += 'select o.order_d as Date, d.name as Name, "Drugs" as Category, e.lname||" "||e.fname as Employee, o.unit_price*o.quantity as Cost from orders o left join employees e on e.id = o.employee_id left join drugs d on d.id = o.drug_id where o.order_d between ? and ?'
+        params.append(d_from)
+        params.append(d_to)
+    if 'procedures' in categories:
+        if query != '':
+            query += ' UNION ALL '
+        query += 'select h.entry_d as Date, p.name as Name, "Procedure" as Category, e.lname||" "||e.fname as Employee, p.price as Cost from history h left join employees e on e.id = h.employee_id left join procedures p on p.id = h.procedure_id where h.procedure_id is not null and h.entry_d between ? and ?'
+        params.append(d_from)
+        params.append(d_to)        
+    if 'salaries' in categories:
+        if query != '':
+            query += ' UNION ALL '
+        query += 'select datetime("now", "start of month") as Date, " Salary" as Name, " Salary" as Category, e.lname||" "||e.fname as Employee, round(e.salary*( \
+                  strftime("%Y.%m", date(min(date("now"), ?), "start of month")) - \
+                  strftime("%Y.%m", date(max(e.employment_d, ?), "start of month")) \
+                  )*100,2) as Cost from employees e where Cost <> 0'
+        params.append(d_to)
+        params.append(d_from)
+    return query, params
+  
+def get_cost_report_details(db, query, params, sorting):
+    query = 'select * from (' + query + ') order by '
+    if sorting in ['Date', 'Name', 'Category', 'Employee', 'Cost']:
+        query += sorting
+        if sorting in ['Date', 'Cost']:
+            query += ' desc'
+    else:
+        query += 'Date desc'  
+    return db.execute(query, params).fetchall()
+
+def get_cost_report_total(db, query, params):
+    query = 'select sum(Cost) from (' + query + ')'
+    return db.execute(query, params).fetchone()[0]
+    
+def get_cost_report_subtotals(db, query, params, sorting):
+    query = ', sum(Cost) from (' + query + ') group by '
+    if sorting in ['Name', 'Category', 'Employee']:
+        query = sorting + query + sorting
+    else:
+        query = 'Category' + query + 'Category'
+    query = 'select ' + query
+    return db.execute(query, params).fetchall()
+    
+def get_cost_report(db, d_from, d_to, categories, options, sorting):
+    db.execute('begin transaction')
+    query, params = get_cost_report_query(d_from, d_to, categories)
+    total = get_cost_report_total(db, query, params)
+    subtotals = get_cost_report_subtotals(db, query, params, sorting) if 'subtotals' in options else None
+    details = get_cost_report_details(db, query, params, sorting) if 'details' in options else None
+    db.rollback()
+    return (total, subtotals, details)

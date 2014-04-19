@@ -22,3 +22,7 @@ h3              { font-size: 1em; }
 table, table tr, table td { border-spacing: 0px; border: 1px solid black; border-collapse: collapse; }
 table td { padding: 2px; }
 table.dbtable tr:first-child { background-color: #D8D8D8; font-weight: bold; }
+
+.left_margin { padding-left: 2em; }
+.bold { font-weight: bold; }
+    

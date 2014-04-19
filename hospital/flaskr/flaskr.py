@@ -62,6 +62,8 @@ def main_screen():
         return render_template('doctor_main.html', position=position)
     elif position == "Warehouseman":
         return render_template('warehouseman_main.html', position=position)
+    elif position == "Accountant":
+        return render_template('accountant_main.html', position=position)
         
     return render_template('main_screen.html', position=position)    
     
@@ -379,6 +381,28 @@ def drug_details():
         return redirect(url_for('main_screen')) 
     orders = get_drug_orders(db, id, 10)
     return render_template('drug_details.html', details=details, error=error, orders=orders, allow_orders=allow_orders, allow_change_price=allow_change_price, allow_delete=allow_delete)
+    
+@app.route('/cost_summary', methods=['GET', 'POST'])
+def cost_summary(): 
+    db = get_db()
+    error = None
+    position = get_position(db, session['username'])
+    if 'logged_in' not in session or not session['logged_in'] or position not in ['Admin', 'Accountant']:
+        flash('You do not have rights to access this part of website')
+        return redirect(url_for('main_screen')) 
+        
+    form = None   
+    total = None
+    subtotals = None
+    details = None
+    if request.method == 'POST':
+        form = request.form
+        if form['d_from'] != "" and form['d_to'] != "" and form['d_from'] <= form['d_to']:
+            (total, subtotals, details) = get_cost_report(db, form['d_from'], form['d_to'], form.getlist('category'), form.getlist('options'), form['sorting'])
+        else:
+            error = "Date format incorrect"
+
+    return render_template('cost_summary.html', form=form, error=error, total=total, subtotals=subtotals, details=details)
     
 if __name__ == '__main__':
     app.run()

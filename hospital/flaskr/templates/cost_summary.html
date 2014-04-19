@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+{% block body %}
+    <h2>Generate costs reports</h2>
+    {% if error %}<p class=error><strong>Error:</strong> {{ error }}</p>{% endif %}
+    
+    <br/>
+    <h3>Choose report settings</h3>
+    <br/>
+    <form action="{{ url_for('cost_summary') }}" method=post>
+        <label>Period of time:</label><br/>
+        <div class=left_margin>
+            From: <input type=date name=d_from {% if form %}value={{ form['d_from'] }}{% endif %}>
+            to: <input type=date name=d_to {% if form %}value={{ form['d_to'] }}{% endif %}><br/>
+        </div>
+        <label>Categories:</label><br/>
+        <div class=left_margin>
+            <input type=checkbox name=category value=salaries {% if form and 'salaries' in form.getlist('category') %}checked{% endif %}>Salaries<br/>
+            <input type=checkbox name=category value=drugs {% if form and 'drugs' in form.getlist('category') %}checked{% endif %}>Drugs</br>
+            <input type=checkbox name=category value=procedures {% if form and 'procedures' in form.getlist('category') %}checked{% endif %}>Procedures<br/>
+        </div>
+        <label>Options:</label><br/>
+        <div class=left_margin>
+            <input type=checkbox name=options value=subtotals {% if form and 'subtotals' in form.getlist('options') %}checked{% endif %}>Generate subtotals<br/>
+            <input type=checkbox name=options value=details {% if form and 'details' in form.getlist('options') %}checked{% endif %}>Generate details<br/>
+        </div>
+        <label>Sort by:</label><br/>
+        <div class=left_margin>
+            <input type=radio name=sorting value=Date {% if form and form['sorting'] == 'Date' %}checked{% endif %}>Date<br/>
+            <input type=radio name=sorting value=Name {% if form and form['sorting'] == 'Name' %}checked{% endif %}>Name<br/>
+            <input type=radio name=sorting value=Category {% if form and form['sorting'] == 'Category' %}checked{% endif %}>Category<br/>
+            <input type=radio name=sorting value=Employee {% if form and form['sorting'] == 'Employee' %}checked{% endif %}>Employee<br/>
+            <input type=radio name=sorting value=Cost {% if form and form['sorting'] == 'Cost' %}checked{% endif %}>Cost<br/>
+        </div>
+        <input type=submit value=Generate>
+    </form>
+    
+    {% if details or subtotals or total %}
+    <br/>
+    <h2>Report:</h2>
+    <br/>
+    {% endif %}
+    
+    <h3>Total</h3>
+    <p class=bold>{{ total }}$</p>
+
+    {% if subtotals %}
+        <h3>Subtotals</h3>
+        <table class=dbtable>
+        <tr><td>Group<td>Total cost
+        {% for row in subtotals %}
+            <tr>
+                {% for d in row %}<td>{{ d }}{% endfor %}
+            </tr>
+        {% endfor %}
+        </table>
+        <br/>
+    {% endif %}
+    
+    {% if details %}
+        <h3>Details</h3>
+        <table class=dbtable>
+        <tr><td>Date<td>Name<td>Category<td>Employee<td>Cost
+        {% for row in details %}
+            <tr>
+                {% for d in row %}<td>{{ d }}{% endfor %}
+            </tr>
+        {% endfor %}
+        </table>
+    {% endif %}
+{% endblock %}
