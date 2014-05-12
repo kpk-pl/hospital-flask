@@ -217,8 +217,8 @@ def discharge_patient(db, pesel):
     file_id = db.execute('select id from files where patient_pesel = ? and discharge_d is null', [pesel]).fetchone()
     if file_id:
         file_id = file_id[0]
-        db.execute('update files set discharge_d = datetime(\'now\') where id = ?', [file_id])
-        db.execute('delete from assignments where fil_id = ?', [file_id])
+        db.execute('update files set discharge_d = datetime(\'now\') where id = (select id from files where patient_pesel = ? and discharge_d is null)', [file_id])
+        #db.execute('delete from assignments where fil_id = ?', [file_id]) now done in trigger
         db.commit()
         return True
     db.rollback()

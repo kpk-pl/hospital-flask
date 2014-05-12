@@ -92,9 +92,17 @@ create table orders (
     unit_price float not null,
     order_d datetime not null,
     employee_id integer not null,
-    foreign key(employee_id) references employee(id),
+    foreign key(employee_id) references employees(id),
     foreign key(drug_id) references drugs(id)
 );
+
+drop trigger if exists remove_assignments_discharge;
+create trigger remove_assignments_discharge after update of discharge_d on files
+for each row
+when old.discharge_d is null and new.discharge_d is not null
+begin
+    delete from assignments where fil_id = new.id;
+end;
 
 insert into positions (id, name) values (0, "Admin");
 insert into positions (id, name) values (1, "Receptionist");
